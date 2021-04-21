@@ -35,12 +35,12 @@ if __name__ == '__main__':
             if not div:
                 print(f'WARNING: #{frag} not found', file=sys.stderr)
                 continue
-            title = div.find('h1').get_text()
+            children = tuple(div.children)
+            title = children[0].get_text()
             text = ''
-            ps = div.find_all('p')
-            for p in ps[:-1]:
-                text += str(p)
-            author = ps[-1].find('em').get_text()
+            for child in children[1:-1]:
+                text += str(child)
+            author = children[-1].get_text().strip()
             records.append({'link': link, 'title': title, 'text': text,
                     'author': author})
             if len(records) >= LIMIT:
