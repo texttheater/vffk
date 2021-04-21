@@ -8,7 +8,7 @@ from mysql.connector import connect, Error
 from urllib.parse import urldefrag, urljoin
 
 
-LIMIT = 12 # how many items to scrape in one go, at most
+LIMIT = 50 # how many items to scrape in one go, at most
 
 
 if __name__ == '__main__':
