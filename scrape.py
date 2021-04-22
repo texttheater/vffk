@@ -15,9 +15,11 @@ if __name__ == '__main__':
     with connect(host=config.db_host, user=config.db_user,
             password=config.db_pass, database=config.db_name) \
             as connection, connection.cursor() as cursor:
+        # see which links we already scraped
         query = 'SELECT link FROM vffk';
         cursor.execute(query)
         links = set(link for (link,) in cursor.fetchall())
+        # scrape
         session = requests_cache.CachedSession('vffk', backend='memory')
         index_url = 'https://www.titanic-magazin.de/fachmann/archiv/'
         index_res = session.get(index_url)
