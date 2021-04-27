@@ -43,6 +43,9 @@ if __name__ == '__main__':
             for child in children[1:-1]:
                 text += str(child)
             author = children[-1].get_text().strip()
+            if not text:
+                text = author
+                author = ''
             records.append({'link': link, 'title': title, 'text': text,
                     'author': author})
             if len(records) >= LIMIT:
