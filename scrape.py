@@ -25,8 +25,17 @@ if __name__ == '__main__':
         index_res = session.get(index_url)
         index_soup = BeautifulSoup(index_res.content, 'html.parser')
         records = []
-        for a in reversed(index_soup.select('div#briefe > nav > map > ul > li > ul > li > a')):
-            link = urljoin(index_url, a.get('href'))
+        # Work around broken index
+        links = [
+            'https://www.titanic-magazin.de/fachmann/2022/januar',
+            'https://www.titanic-magazin.de/fachmann/2022/februar',
+            'https://www.titanic-magazin.de/fachmann/2022/maerz',
+            'https://www.titanic-magazin.de/fachmann/2022/april',
+        ]
+        #for a in reversed(index_soup.select('div#briefe > nav > map > ul > li > ul > li > a')):
+        #    link = urljoin(index_url, a.get('href'))
+        for link in links:
+            print(link, file=sys.stderr)
             if link in links:
                 continue
             print(f'INFO: scraping {link}', file=sys.stderr)
