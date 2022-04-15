@@ -27,6 +27,8 @@ if __name__ == '__main__':
         records = []
         # Work around broken index
         links = [
+            'https://www.titanic-magazin.de/fachmann/2021/november',
+            'https://www.titanic-magazin.de/fachmann/2021/dezember',
             'https://www.titanic-magazin.de/fachmann/2022/januar',
             'https://www.titanic-magazin.de/fachmann/2022/februar',
             'https://www.titanic-magazin.de/fachmann/2022/maerz',
