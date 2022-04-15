@@ -19,14 +19,9 @@ if __name__ == '__main__':
         query = 'SELECT link FROM vffk';
         cursor.execute(query)
         links = set(link for (link,) in cursor.fetchall())
-        # scrape
+        # prepare scraping
         session = requests_cache.CachedSession('vffk', backend='memory')
-        index_url = 'https://www.titanic-magazin.de/fachmann/archiv/'
-        index_res = session.get(index_url)
-        index_soup = BeautifulSoup(index_res.content, 'html.parser')
-        records = []
-        # Work around broken index
-        links = [
+        index_urls = [
             'https://www.titanic-magazin.de/fachmann/2021/november',
             'https://www.titanic-magazin.de/fachmann/2021/dezember',
             'https://www.titanic-magazin.de/fachmann/2022/januar',
@@ -34,37 +29,40 @@ if __name__ == '__main__':
             'https://www.titanic-magazin.de/fachmann/2022/maerz',
             'https://www.titanic-magazin.de/fachmann/2022/april',
         ]
-        #for a in reversed(index_soup.select('div#briefe > nav > map > ul > li > ul > li > a')):
-        #    link = urljoin(index_url, a.get('href'))
-        for link in links:
-            print(link, file=sys.stderr)
-            if link in links:
-                continue
-            print(f'INFO: scraping {link}', file=sys.stderr)
-            month_url, frag = urldefrag(link)
-            month_res = session.get(month_url)
-            month_soup = BeautifulSoup(month_res.content, 'html.parser')
-            div = month_soup.find('div', id=frag)
-            if not div:
-                print(f'WARNING: #{frag} not found', file=sys.stderr)
-                continue
-            children = tuple(div.children)
-            title = children[0].get_text()
-            text = ''
-            for child in children[1:-1]:
-                text += str(child)
-            author = children[-1].get_text().strip()
-            if not text:
-                text = author
-                author = ''
-            records.append({'link': link, 'title': title, 'text': text,
-                    'author': author})
-            if len(records) >= LIMIT:
-                break
-        # insert
-        query = 'INSERT INTO vffk (link, title, text, author, updated) ' \
-                'VALUES (%s, %s, %s, %s, NOW())'
-        records = tuple((r['link'], r['title'], r['text'], r['author'])
-                for r in records)
-        cursor.executemany(query, records)
-        connection.commit()
+        # scrape
+        for index_url in index_urls:
+            index_res = session.get(index_url)
+            index_soup = BeautifulSoup(index_res.content, 'html.parser')
+            records = []
+            for a in reversed(index_soup.select('div#briefe > nav > ul > li > a')):
+                link = urljoin(index_url, a.get('href'))
+                print(link, file=sys.stderr)
+                if link in links:
+                    continue
+                print(f'INFO: scraping {link}', file=sys.stderr)
+                month_url, frag = urldefrag(link)
+                month_res = session.get(month_url)
+                month_soup = BeautifulSoup(month_res.content, 'html.parser')
+                div = month_soup.find('div', id=frag)
+                if not div:
+                    print(f'WARNING: #{frag} not found', file=sys.stderr)
+                    continue
+                children = tuple(div.children)
+                title = children[0].get_text()
+                text = ''
+                for child in children[1:-1]:
+                    text += str(child)
+                author = children[-1].get_text().strip()
+                if not text:
+                    text = author
+                    author = ''
+                records.append({'link': link, 'title': title, 'text': text,
+                        'author': author})
+                if len(records) >= LIMIT:
+                    break
+            query = 'INSERT INTO vffk (link, title, text, author, updated) ' \
+                    'VALUES (%s, %s, %s, %s, NOW())'
+            records = tuple((r['link'], r['title'], r['text'], r['author'])
+                    for r in records)
+            cursor.executemany(query, records)
+            connection.commit()
