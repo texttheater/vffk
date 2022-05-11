@@ -28,6 +28,7 @@ if __name__ == '__main__':
             'https://www.titanic-magazin.de/fachmann/2022/februar',
             'https://www.titanic-magazin.de/fachmann/2022/maerz',
             'https://www.titanic-magazin.de/fachmann/2022/april',
+            'https://www.titanic-magazin.de/fachmann/2022/mai',
         ]
         # scrape
         for index_url in index_urls:
