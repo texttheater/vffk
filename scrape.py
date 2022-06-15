@@ -1,14 +1,25 @@
-import config
-import requests_cache
+from datetime import date, timedelta
 import sys
 
 
 from bs4 import BeautifulSoup
 from mysql.connector import connect, Error
+from requests_cache import CachedSession
 from urllib.parse import urldefrag, urljoin
 
 
+import config
+
+
 LIMIT = 50 # how many items to scrape in one go, at most
+MONTHS = ('januar', 'februar', 'maerz', 'april', 'mai', 'juni', 'juli',
+        'august', 'september', 'oktober', 'november', 'dezember')
+
+
+def date_to_index_url(date):
+    year = date.year
+    month = MONTHS[date.month - 1]
+    return f'https://www.titanic-magazin.de/fachmann/{year}/{month}'
 
 
 if __name__ == '__main__':
@@ -20,18 +31,18 @@ if __name__ == '__main__':
         cursor.execute(query)
         links = set(link for (link,) in cursor.fetchall())
         # prepare scraping
-        session = requests_cache.CachedSession('vffk', backend='memory')
-        index_urls = [
-            'https://www.titanic-magazin.de/fachmann/2021/november',
-            'https://www.titanic-magazin.de/fachmann/2021/dezember',
-            'https://www.titanic-magazin.de/fachmann/2022/januar',
-            'https://www.titanic-magazin.de/fachmann/2022/februar',
-            'https://www.titanic-magazin.de/fachmann/2022/maerz',
-            'https://www.titanic-magazin.de/fachmann/2022/april',
-            'https://www.titanic-magazin.de/fachmann/2022/mai',
-        ]
+        session = CachedSession('vffk', backend='memory')
+        index_urls = tuple(
+            date_to_index_url(date)
+            for date in (
+                date.today() - timedelta(months=1),
+                date.today(),
+                date.today() + timedelta(months=1),
+            )
+        )
         # scrape
         for index_url in index_urls:
+            print(f'scraping {index_url}')
             index_res = session.get(index_url)
             index_soup = BeautifulSoup(index_res.content, 'html.parser')
             records = []
